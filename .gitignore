@@ -50,6 +50,7 @@ next-env.d.ts
 # Logs & IDE Konfigurationsdateien
 /.idea/
 .vscode/
+*.iml
 *.swp
 *.swo
 *.sublime-workspace
