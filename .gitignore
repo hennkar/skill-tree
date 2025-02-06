@@ -39,3 +39,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Husky
+/.husky/_/
+
+# Linting & Prettier Cache
+.eslintcache
+.prettier-cache/
+
+# Logs & IDE Konfigurationsdateien
+/.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
