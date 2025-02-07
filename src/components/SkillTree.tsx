@@ -42,15 +42,26 @@ const SkillTree: React.FC = () => {
     [],
   );
 
-  const onConnect = useCallback((connection: Connection) => {
-    fetch('/api/neo4j/edges', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(connection),
-    })
-      .then((res) => res.json())
-      .then((newEdge) => setEdges((eds) => [...eds, newEdge]));
-  }, []);
+  const onConnect = useCallback(
+      (connection: Connection) => {
+        fetch("/api/neo4j/edges", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(connection),
+        })
+            .then((res) => res.json())
+            .then(() => {
+              fetch("/api/neo4j/nodes") // Aktualisierte Daten abrufen
+                  .then((res) => res.json())
+                  .then((data) => {
+                    setNodes(data.nodes);
+                    setEdges(data.edges);
+                  });
+            });
+      },
+      []
+  );
+
 
   const addNode = useCallback(() => {
     const newNode: SkillTreeNode = {
