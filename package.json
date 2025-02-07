@@ -10,6 +10,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "neo4j-driver": "^5.28.0",
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -33,6 +34,9 @@
     "typescript": "^5"
   },
   "lint-staged": {
-    "**/*.{ts,tsx,js,jsx}": ["eslint --fix", "prettier --write"]
+    "**/*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }
