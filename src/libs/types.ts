@@ -2,7 +2,7 @@ import { Node } from 'reactflow';
 
 export interface SkillTreeNode extends Node {
   data: {
-    label: string;
+    name: string;
     description?: string;
     level?: number;
   };

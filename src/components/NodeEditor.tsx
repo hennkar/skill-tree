@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { NodeProps } from '@/libs/types';
+import React, { useEffect, useState } from 'react';
+import { SkillTreeNode } from '@/libs/types';
 
 interface NodeEditorProps {
-  node: { id: string; data: { label: string; description?: string } } | null;
-  setNodes: React.Dispatch<React.SetStateAction<NodeProps[]>>;
+  node: SkillTreeNode | null;
+  setNodes: React.Dispatch<React.SetStateAction<SkillTreeNode[]>>;
 }
 
 const NodeEditor: React.FC<NodeEditorProps> = ({ node, setNodes }) => {
@@ -14,7 +14,7 @@ const NodeEditor: React.FC<NodeEditorProps> = ({ node, setNodes }) => {
 
   useEffect(() => {
     if (node) {
-      setName(node.data.label);
+      setName(node.data.name);
       setDescription(node.data.description || '');
     }
   }, [node]);

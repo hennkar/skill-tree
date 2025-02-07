@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { fromId, toId, type } = await req.json();
-    if (!fromId || !toId || !type) {
+    const { source, target } = await req.json();
+    if (!source || !target) {
       return NextResponse.json(
         { error: 'Missing parameters' },
         { status: 400 },
@@ -12,8 +12,8 @@ export async function POST(req: Request) {
     }
 
     await session.run(
-      'MATCH (a:Technology), (b:Technology) WHERE ID(a) = $fromId AND ID(b) = $toId CREATE (a)-[r:RELATIONSHIP {type: $type}]->(b) RETURN r',
-      { fromId: Number(fromId), toId: Number(toId), type },
+      'MATCH (a:Technology), (b:Technology) WHERE ID(a) = $source AND ID(b) = $target CREATE (a)-[r:RELATIONSHIP]->(b) RETURN r',
+      { source: Number(source), target: Number(target) },
     );
 
     return NextResponse.json(

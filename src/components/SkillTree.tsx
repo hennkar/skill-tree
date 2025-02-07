@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ReactFlow, {
-  addEdge,
   applyEdgeChanges,
   applyNodeChanges,
   Background,
@@ -17,27 +16,19 @@ import 'reactflow/dist/style.css';
 import NodeEditor from './NodeEditor';
 import { SkillTreeNode } from '@/libs/types';
 
-const initialNodes: SkillTreeNode[] = [
-  {
-    id: '1',
-    position: { x: 100, y: 100 },
-    data: { label: 'Node 1', level: 1 },
-    type: 'default',
-  },
-  {
-    id: '2',
-    position: { x: 300, y: 200 },
-    data: { label: 'Node 2', level: 2 },
-    type: 'default',
-  },
-];
-
-const initialEdges: Edge[] = [];
-
 const SkillTree: React.FC = () => {
-  const [nodes, setNodes] = useState<SkillTreeNode[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [nodes, setNodes] = useState<SkillTreeNode[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<SkillTreeNode | null>(null);
+
+  useEffect(() => {
+    fetch('/api/neo4j/nodes')
+      .then((res) => res.json())
+      .then((data) => {
+        setNodes(data.nodes);
+        setEdges(data.edges);
+      });
+  }, []);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
@@ -51,30 +42,45 @@ const SkillTree: React.FC = () => {
     [],
   );
 
-  const onConnect = useCallback(
-    (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
-    [],
-  );
-
-  const addNode = useCallback(() => {
-    setNodes((nds) => {
-      const newNode: SkillTreeNode = {
-        id: (nds.length + 1).toString(),
-        position: { x: 200 + nds.length * 50, y: 100 + nds.length * 50 },
-        data: {
-          label: `Node ${nds.length + 1}`,
-          level: Math.ceil((nds.length + 1) / 5),
-        },
-        type: 'default',
-      };
-      return [...nds, newNode];
-    });
+  const onConnect = useCallback((connection: Connection) => {
+    fetch('/api/neo4j/edges', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(connection),
+    })
+      .then((res) => res.json())
+      .then((newEdge) => setEdges((eds) => [...eds, newEdge]));
   }, []);
 
-  /*  const removeNode = useCallback((id: string) => {
-    setNodes((nds) => nds.filter((node) => node.id !== id));
-    setEdges((eds) => eds.filter((edge) => edge.source !== id && edge.target !== id));
-  }, []);*/
+  const addNode = useCallback(() => {
+    const newNode: SkillTreeNode = {
+      id: crypto.randomUUID(),
+      position: { x: 200, y: 100 },
+      data: { name: `New Node`, level: 1 },
+      type: 'default',
+    };
+    fetch('/api/neo4j/nodes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: newNode.id,
+        name: newNode.data.name,
+        level: newNode.data.level,
+      }),
+    })
+      .then((res) => res.json())
+      .then((savedNode) => setNodes((nds) => [...nds, savedNode]));
+  }, []);
+
+  /*
+  const removeNode = useCallback((id: string) => {
+    fetch(`/api/neo4j/nodes/${id}`, { method: "DELETE" })
+        .then(() => {
+          setNodes((nds) => nds.filter((node) => node.id !== id));
+          setEdges((eds) => eds.filter((edge) => edge.source !== id && edge.target !== id));
+        });
+  }, []);
+*/
 
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: SkillTreeNode) => {
