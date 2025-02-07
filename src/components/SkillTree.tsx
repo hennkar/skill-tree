@@ -72,15 +72,14 @@ const SkillTree: React.FC = () => {
       .then((savedNode) => setNodes((nds) => [...nds, savedNode]));
   }, []);
 
-  /*
   const removeNode = useCallback((id: string) => {
-    fetch(`/api/neo4j/nodes/${id}`, { method: "DELETE" })
-        .then(() => {
-          setNodes((nds) => nds.filter((node) => node.id !== id));
-          setEdges((eds) => eds.filter((edge) => edge.source !== id && edge.target !== id));
-        });
+    fetch(`/api/neo4j/nodes/${id}`, { method: 'DELETE' }).then(() => {
+      setNodes((nds) => nds.filter((node) => node.id !== id));
+      setEdges((eds) =>
+        eds.filter((edge) => edge.source !== id && edge.target !== id),
+      );
+    });
   }, []);
-*/
 
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: SkillTreeNode) => {
@@ -97,6 +96,12 @@ const SkillTree: React.FC = () => {
           className="p-2 bg-blue-500 text-white rounded mb-4"
         >
           Add Node
+        </button>
+        <button
+          onClick={() => selectedNode && removeNode(selectedNode.id)}
+          className="p-2 bg-red-500 text-white rounded mb-4 ml-2"
+        >
+          Delete Node
         </button>
         <ReactFlow
           nodes={nodes}
