@@ -1,8 +1,18 @@
+import { Node } from 'reactflow';
+
+export interface SkillTreeNode extends Node {
+  data: {
+    label: string;
+    description?: string;
+    level?: number;
+  };
+}
+
 export type NodeProps = {
   id: string;
   data: {
     label: string;
-    description: string;
+    // description: string;
   };
   position: { x: number; y: number };
 };

@@ -1,29 +1,21 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import ReactFlow, {
-  Background,
-  Controls,
-  MiniMap,
-  applyNodeChanges,
-  applyEdgeChanges,
   addEdge,
-  Node,
-  Edge,
+  applyEdgeChanges,
+  applyNodeChanges,
+  Background,
   Connection,
-  NodeChange,
+  Controls,
+  Edge,
   EdgeChange,
+  MiniMap,
+  NodeChange,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import NodeEditor from './NodeEditor';
-
-interface SkillTreeNode extends Node {
-  data: {
-    label: string;
-    description?: string;
-    level?: number;
-  };
-}
+import { SkillTreeNode } from '@/libs/types';
 
 const initialNodes: SkillTreeNode[] = [
   {
@@ -43,14 +35,9 @@ const initialNodes: SkillTreeNode[] = [
 const initialEdges: Edge[] = [];
 
 const SkillTree: React.FC = () => {
-  const [nodes, setNodes] = useState<SkillTreeNode[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+  const [nodes, setNodes] = useState<SkillTreeNode[]>(initialNodes);
+  const [edges, setEdges] = useState<Edge[]>(initialEdges);
   const [selectedNode, setSelectedNode] = useState<SkillTreeNode | null>(null);
-
-  useEffect(() => {
-    setNodes(initialNodes);
-    setEdges(initialEdges);
-  }, []);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
@@ -69,36 +56,36 @@ const SkillTree: React.FC = () => {
     [],
   );
 
-  const addNode = () => {
-    const newNode: SkillTreeNode = {
-      id: (nodes.length + 1).toString(),
-      position: {
-        x: (nodes.length % 5) * 200,
-        y: Math.floor(nodes.length / 5) * 150,
-      },
-      data: {
-        label: `Node ${nodes.length + 1}`,
-        level: Math.ceil((nodes.length + 1) / 5),
-      },
-      type: 'default',
-    };
-    setNodes((nds) => [...nds, newNode]);
-  };
+  const addNode = useCallback(() => {
+    setNodes((nds) => {
+      const newNode: SkillTreeNode = {
+        id: (nds.length + 1).toString(),
+        position: { x: 200 + nds.length * 50, y: 100 + nds.length * 50 },
+        data: {
+          label: `Node ${nds.length + 1}`,
+          level: Math.ceil((nds.length + 1) / 5),
+        },
+        type: 'default',
+      };
+      return [...nds, newNode];
+    });
+  }, []);
 
-  const removeNode = (id: string) => {
+  /*  const removeNode = useCallback((id: string) => {
     setNodes((nds) => nds.filter((node) => node.id !== id));
-    setEdges((eds) =>
-      eds.filter((edge) => edge.source !== id && edge.target !== id),
-    );
-  };
+    setEdges((eds) => eds.filter((edge) => edge.source !== id && edge.target !== id));
+  }, []);*/
 
-  const onNodeClick = (_: React.MouseEvent, node: SkillTreeNode) => {
-    setSelectedNode(node);
-  };
+  const onNodeClick = useCallback(
+    (_: React.MouseEvent, node: SkillTreeNode) => {
+      setSelectedNode(node);
+    },
+    [],
+  );
 
   return (
     <div className="w-full h-screen bg-gray-100 p-4 flex">
-      <div className="w-3/4">
+      <div className="w-3/4 relative">
         <button
           onClick={addNode}
           className="p-2 bg-blue-500 text-white rounded mb-4"
@@ -106,36 +93,14 @@ const SkillTree: React.FC = () => {
           Add Node
         </button>
         <ReactFlow
-          nodes={nodes.map((node) => ({
-            ...node,
-            position: {
-              x: (node.data.level! - 1) * 200,
-              y: (parseInt(node.id) % 5) * 100,
-            },
-            data: {
-              ...node.data,
-              label: (
-                <div className="relative p-2 bg-white border rounded shadow">
-                  <strong>{node.data.label}</strong>
-                  <p className="text-xs text-gray-600">
-                    {node.data.description}
-                  </p>
-                  <button
-                    onClick={() => removeNode(node.id)}
-                    className="absolute top-0 right-0 bg-red-500 text-white p-1 text-xs rounded"
-                  >
-                    X
-                  </button>
-                </div>
-              ),
-            },
-          }))}
+          nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={onNodeClick}
           fitView
+          defaultViewport={{ x: 1, y: 1, zoom: 1 }}
         >
           <MiniMap />
           <Controls />
