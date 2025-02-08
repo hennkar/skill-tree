@@ -14,28 +14,30 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import NodeEditor from './NodeEditor';
-import { SkillTreeNode } from '@/libs/types';
+import {SkillTreeNode, SkillTreeNodeNeo} from '@/libs/types';
+import {createTechnology, getTechnologies} from "@/app/api/neo4j/nodes/route";
 
-const LEVEL_SPACING_X = 300;
+const LEVEL_SPACING_X = 200;
 const NODE_SPACING_Y = 100;
 
 const SkillTree: React.FC = () => {
-  const [nodes, setNodes] = useState<SkillTreeNode[]>([]);
+  const [nodes, setNodes] = useState<SkillTreeNodeNeo[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
-  const [selectedNode, setSelectedNode] = useState<SkillTreeNode | null>(null);
+  const [selectedNode, setSelectedNode] = useState<SkillTreeNodeNeo | null>(null);
 
   useEffect(() => {
-    fetch('/api/neo4j/nodes')
-        .then((res) => res.json())
+    getTechnologies()
         .then((data) => {
           const positionedNodes = positionNodes(data.nodes);
           setNodes(positionedNodes);
           setEdges(data.edges);
-        });
+        })
+        .catch((error) => console.error('Error fetching technologies:', error));
   }, []);
 
-  const positionNodes = (nodes: SkillTreeNode[]) => {
-    const levels: { [key: number]: SkillTreeNode[] } = {};
+
+  const positionNodes = (nodes: SkillTreeNodeNeo[]) => {
+    const levels: { [key: number]: SkillTreeNodeNeo[] } = {};
     nodes.forEach((node) => {
       if (!levels[node.data.level]) {
         levels[node.data.level] = [];
@@ -43,7 +45,7 @@ const SkillTree: React.FC = () => {
       levels[node.data.level].push(node);
     });
 
-    const positionedNodes: SkillTreeNode[] = [];
+    const positionedNodes: SkillTreeNodeNeo[] = [];
     Object.keys(levels).forEach((level) => {
       const lvl = parseInt(level);
       levels[lvl].forEach((node, index) => {
@@ -93,20 +95,11 @@ const SkillTree: React.FC = () => {
       position: { x: 0, y: 0 },
     };
 
-    fetch('/api/neo4j/nodes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: newNode.data.name,
-        level: newNode.data.level,
-        x: newNode.position.x,
-        y: newNode.position.y,
-      }),
-    })
-        .then((res) => res.json())
+    createTechnology(newNode.data.name, newNode.data.level, newNode.position.x, newNode.position.y)
         .then((savedNode) => {
           setNodes((nds) => positionNodes([...nds, savedNode]));
-        });
+        })
+        .catch((error) => console.error('Error creating technology:', error));
   }, []);
 
   const removeNode = useCallback((id: string) => {
@@ -116,7 +109,7 @@ const SkillTree: React.FC = () => {
     });
   }, []);
 
-  const onNodeClick = useCallback((_: React.MouseEvent, node: SkillTreeNode) => {
+  const onNodeClick = useCallback((_: React.MouseEvent, node: SkillTreeNodeNeo) => {
     setSelectedNode(node);
   }, []);
 

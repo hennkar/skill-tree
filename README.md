@@ -5,5 +5,6 @@
 
 # Sunday
 - Roles: Admin, User
+- Labels: Technology, Methode etc.
 - Layout
 - RAG?

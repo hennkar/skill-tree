@@ -4,7 +4,7 @@ export interface SkillTreeNode extends Node {
   data: {
     name: string;
     description?: string;
-    level?: number;
+    level: number;
   };
 }
 
@@ -14,7 +14,7 @@ export interface SkillTreeNodeNeo extends Node {
   data: {
     label: string;
     description?: string;
-    level?: number;
+    level: number;
   };
 }
 
