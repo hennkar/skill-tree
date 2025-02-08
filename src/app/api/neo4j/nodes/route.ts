@@ -1,6 +1,6 @@
-import { session } from '@/libs/neo4j';
-import { NextResponse } from 'next/server';
-import { EdgeProps, NodeProps } from '@/libs/types';
+import {session} from '@/libs/neo4j';
+import {NextResponse} from 'next/server';
+import {EdgeProps, SkillTreeNodeNeo} from '@/libs/types';
 
 export async function GET() {
   try {
@@ -8,7 +8,7 @@ export async function GET() {
       'MATCH (n:Technology) OPTIONAL MATCH (n)-[r]->(m) RETURN n, r, m',
     );
 
-    const nodesMap = new Map<string, NodeProps>();
+    const nodesMap = new Map<string, SkillTreeNodeNeo>();
     const edges: EdgeProps[] = [];
 
     result.records.forEach((record) => {
@@ -16,8 +16,8 @@ export async function GET() {
       if (node && !nodesMap.has(node.identity.toString())) {
         nodesMap.set(node.identity.toString(), {
           id: node.identity.toString(),
-          data: { label: node.properties.name },
-          position: { x: Math.random() * 400, y: Math.random() * 400 },
+          data: { label: node.properties.name, level: node.properties.level },
+          position: { x: node.properties.x, y: node.properties.y },
         });
       }
 
@@ -44,21 +44,21 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { name } = await req.json();
+    const { name, level, x, y } = await req.json();
     if (!name)
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
 
     const result = await session.run(
-      'CREATE (n:Technology {name: $name}) RETURN n',
-      { name },
+      'CREATE (n:Technology {name: $name, level: $level, x: $x, y:$y}) RETURN n',
+      { name, level, x, y },
     );
     const node = result.records[0].get('n');
 
     return NextResponse.json(
       {
         id: node.identity.toString(),
-        data: { label: node.properties.name },
-        position: { x: Math.random() * 400, y: Math.random() * 400 },
+        data: { label: node.properties.name, level: node.properties.level },
+        position: { x: node.properties.x, y: node.properties.y },
       },
       { status: 201 },
     );

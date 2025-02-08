@@ -8,14 +8,15 @@ export interface SkillTreeNode extends Node {
   };
 }
 
-export type NodeProps = {
-  id: string;
+
+// in neo4j muss der name=name sein, in neo4-driver = label... annoying
+export interface SkillTreeNodeNeo extends Node {
   data: {
     label: string;
-    // description: string;
+    description?: string;
+    level?: number;
   };
-  position: { x: number; y: number };
-};
+}
 
 export type EdgeProps = {
   id: string;
