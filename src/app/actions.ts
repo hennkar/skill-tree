@@ -114,7 +114,7 @@ export async function createRelationship(source: number, target: number): Promis
     }
 }
 
-export async function deleteRelationship(fromId: number, toId: number) {
+export async function deleteRelationship(fromId: number, toId: number): Promise<{error?: string, message?: string, status: number}> {
     if (!fromId || !toId) {
         return { error: 'Missing fromId or toId', status: 400 };
     }

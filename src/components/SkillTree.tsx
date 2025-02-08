@@ -15,7 +15,13 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import NodeEditor from './NodeEditor';
 import {SkillTreeNode, SkillTreeNodeNeo} from '@/libs/types';
-import {createRelationship, createTechnology, deleteTechnology, getTechnologies} from "@/app/actions";
+import {
+  createRelationship,
+  createTechnology,
+  deleteRelationship,
+  deleteTechnology,
+  getTechnologies
+} from "@/app/actions";
 
 const LEVEL_SPACING_X = 200;
 const NODE_SPACING_Y = 100;
@@ -65,10 +71,10 @@ const SkillTree: React.FC = () => {
       []
   );
 
-  const onEdgesChange = useCallback(
+/*  const onEdgesChange = useCallback(
       (changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),
       []
-  );
+  );*/
 
   const onConnect = useCallback((connection: Connection) => {
     createRelationship(Number(connection.source), Number(connection.target))
@@ -107,6 +113,40 @@ const SkillTree: React.FC = () => {
           setNodes((nds) => positionNodes([...nds, savedNode]));
         })
         .catch((error) => console.error('Error creating technology:', error));
+  }, []);
+
+  const onEdgesChange = useCallback(
+      (changes: EdgeChange[]) => {
+        setEdges((eds) => applyEdgeChanges(changes, eds));
+
+        // Prüfe, ob eine Edge entfernt wurde
+        changes.forEach(change => {
+          if (change.type === "remove") {
+            const edgeToDelete = edges.find(edge => edge.id === change.id);
+            if (edgeToDelete) {
+              onEdgeDelete(edgeToDelete);
+            }
+          }
+        });
+      },
+      [edges] // Abhängigkeit hinzufügen, damit der aktuelle Zustand verwendet wird
+  );
+
+
+  const onEdgeDelete = useCallback((edge: Edge) => {
+    deleteRelationship(Number(edge.source), Number(edge.target))
+        .then(response => {
+          if (response.status === 204) {
+            console.log("Relationship deleted");
+
+            setEdges(prevEdges => prevEdges.filter(e => !(e.source === edge.source && e.target === edge.target)));
+          } else {
+            console.error('Error deleting relationship:', response.error);
+          }
+        })
+        .catch(error => {
+          console.error('Unexpected error:', error);
+        });
   }, []);
 
   const removeNode = useCallback((id: string) => {
