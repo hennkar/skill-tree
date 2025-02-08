@@ -1,26 +1,27 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import ReactFlow, {
-  applyEdgeChanges,
-  applyNodeChanges,
-  Background,
-  Connection,
-  Controls,
-  Edge,
-  EdgeChange,
-  MiniMap,
-  NodeChange, ReactFlowProvider,
+    applyEdgeChanges,
+    applyNodeChanges,
+    Background,
+    Connection,
+    Controls,
+    Edge,
+    EdgeChange,
+    MiniMap,
+    NodeChange,
+    ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import NodeEditor from './NodeEditor';
 import {SkillTreeNode, SkillTreeNodeNeo} from '@/libs/types';
 import {
-  createRelationship,
-  createTechnology,
-  deleteRelationship,
-  deleteTechnology,
-  getTechnologies
+    createRelationship,
+    createTechnology,
+    deleteRelationship,
+    deleteTechnology,
+    getTechnologies
 } from "@/app/actions";
 
 const LEVEL_SPACING_X = 200;
@@ -65,16 +66,6 @@ const SkillTree: React.FC = () => {
 
     return positionedNodes;
   };
-
-  const onNodesChange = useCallback(
-      (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
-      []
-  );
-
-/*  const onEdgesChange = useCallback(
-      (changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-      []
-  );*/
 
   const onConnect = useCallback((connection: Connection) => {
     createRelationship(Number(connection.source), Number(connection.target))
@@ -132,7 +123,6 @@ const SkillTree: React.FC = () => {
       [edges] // Abhängigkeit hinzufügen, damit der aktuelle Zustand verwendet wird
   );
 
-
   const onEdgeDelete = useCallback((edge: Edge) => {
     deleteRelationship(Number(edge.source), Number(edge.target))
         .then(response => {
@@ -158,6 +148,19 @@ const SkillTree: React.FC = () => {
         .catch((error) => console.error('Error deleting technology:', error));
   }, []);
 
+    const onNodesChange = useCallback(
+        (changes: NodeChange[]) => {
+            setNodes((nds) => applyNodeChanges(changes, nds));
+
+            changes.forEach((change) => {
+                if (change.type === "remove" && change.id) {
+                    removeNode(change.id);
+                }
+            });
+        },
+        [removeNode]
+    );
+
   const onNodeClick = useCallback((_: React.MouseEvent, node: SkillTreeNodeNeo) => {
     setSelectedNode(node);
   }, []);
@@ -168,12 +171,6 @@ const SkillTree: React.FC = () => {
           <div className="w-3/4 relative">
             <button onClick={addNode} className="p-2 bg-blue-500 text-white rounded mb-4">
               Add Node
-            </button>
-            <button
-                onClick={() => selectedNode && removeNode(selectedNode.id)}
-                className="p-2 bg-red-500 text-white rounded mb-4 ml-2"
-            >
-              Delete Node
             </button>
             <ReactFlow
                 nodes={nodes}
