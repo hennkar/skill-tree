@@ -15,7 +15,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import NodeEditor from './NodeEditor';
 import {SkillTreeNode, SkillTreeNodeNeo} from '@/libs/types';
-import {createTechnology, getTechnologies} from "@/app/api/neo4j/nodes/route";
+import {createRelationship, createTechnology, deleteTechnology, getTechnologies} from "@/app/actions";
 
 const LEVEL_SPACING_X = 200;
 const NODE_SPACING_Y = 100;
@@ -71,21 +71,28 @@ const SkillTree: React.FC = () => {
   );
 
   const onConnect = useCallback((connection: Connection) => {
-    fetch('/api/neo4j/edges', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(connection),
-    })
-        .then((res) => res.json())
-        .then(() => {
-          fetch('/api/neo4j/nodes')
-              .then((res) => res.json())
-              .then((data) => {
-                setNodes(positionNodes(data.nodes));
-                setEdges(data.edges);
-              });
+    createRelationship(Number(connection.source), Number(connection.target))
+        .then(response => {
+          console.log(response);
+          if (response.status === 201 && response.edge) {
+            const newEdge: Edge = {
+              id: response.edge.id, // Stelle sicher, dass die ID gesetzt wird
+              source: response.edge.source.toString(),
+              target: response.edge.target.toString(),
+              type: "default", // Falls du eine spezifische Art von Edge hast, passe das an
+            };
+
+            setEdges(prevEdges => [...prevEdges, newEdge]);
+          } else {
+            console.error('Error creating relationship:', response.error);
+          }
+        })
+        .catch(error => {
+          console.error('Unexpected error:', error);
         });
   }, []);
+
+
 
   const addNode = useCallback(() => {
     const newNode: SkillTreeNode = {
@@ -103,10 +110,12 @@ const SkillTree: React.FC = () => {
   }, []);
 
   const removeNode = useCallback((id: string) => {
-    fetch(`/api/neo4j/nodes/${id}`, { method: 'DELETE' }).then(() => {
-      setNodes((nds) => positionNodes(nds.filter((node) => node.id !== id)));
-      setEdges((eds) => eds.filter((edge) => edge.source !== id && edge.target !== id));
-    });
+    deleteTechnology(id)
+        .then(() => {
+          setNodes((nds) => positionNodes(nds.filter((node) => node.id !== id)));
+          setEdges((eds) => eds.filter((edge) => edge.source !== id && edge.target !== id));
+        })
+        .catch((error) => console.error('Error deleting technology:', error));
   }, []);
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: SkillTreeNodeNeo) => {
